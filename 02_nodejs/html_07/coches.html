@@ -1,0 +1,247 @@
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">    
+    <title>Insert title here</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    <!-- Latest compiled and minified JavaScript -->
+</head>
+
+<script type="text/javascript" src="Entidades.js"></script>
+<script type="text/javascript" src="jquery.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script type="text/javascript">
+
+f1();
+
+/*
+let Coche = {    'id'           : null,
+                 'marca'        : null,
+                 'modelo'       : null,
+                 'potencia'     : null }
+Coche.inicializar = function(id, marca, modelo, potencia){
+    this.id = id;
+    this.marca = marca;
+    this.modelo = modelo;
+    this.potencia = potencia;
+}*/  
+//Coche ////////////////////////////////////////////////
+/* Coche esta en Libreria.js
+function Coche(id, marca, modelo , potencia){
+    this.id = id;
+    this.marca = marca;
+    this.modelo = modelo;
+    this.potencia = potencia;
+}
+Coche.prototype.imprimirConsola = function(){
+    console.log(this.id+","+this.marca+","+this.modelo+","+this.potencia);
+};  
+*/ 
+////////////////////////////////////////////////////////
+
+function enviarPeticionListarCoches(){
+    $.ajax( { 'url'     : 'coches', 
+              'success' : rellenarTablaCoches,
+              'error'   : error } );    
+}
+
+function error(){
+    alert("ZASCA!");
+}
+
+let idCocheSel = null;
+function rellenarTablaCoches(coches){
+    $("#tablaCoches").html("");
+    //con for
+    /*
+    for(let a=0; a<coches.length; a++){
+        let coche = coches[a];
+        let tr="<tr id='coche_"+coche.id+"' onclick=seleccionarCoche("+coche.id+")>"+
+                "<td>"+coche.marca+"</td>"+
+                "<td>"+coche.modelo+"</td>"+
+                "<td>"+coche.potencia+"</td>"+
+                "</tr>";
+        $(tr).appendTo($("#tablaCoches"));
+    }*/
+    //con each
+    $(coches).each(function(){
+        //this es el elemento del array
+        let tr="<tr id='coche_"+this.id+"' onclick=seleccionarCoche("+this.id+")>"+
+                "<td>"+this.marca+"</td>"+
+                "<td>"+this.modelo+"</td>"+
+                "<td>"+this.potencia+"</td>"+
+                "</tr>";
+        $(tr).appendTo($("#tablaCoches"));
+    })
+    
+}
+
+function seleccionarCoche(id){
+    idCocheSel = id;
+
+    $("#btnInsertar").prop("disabled",true);
+    $("#btnModificar").prop("disabled",false);
+    $("#btnBorrar").prop("disabled",false);
+
+    $.ajax( { 'url'     : 'coches/'+id,
+              'success' : rellenarFormularioCoche,
+              'error'   : error } );
+}
+
+function rellenarFormularioCoche(coche){
+    $("#marca").val(coche.marca);
+    $("#modelo").val(coche.modelo);
+    $("#potencia").val(coche.potencia);
+}
+
+function vaciarFormularioCoche(coche){
+    idCocheSel = null;
+    $("#marca").val("");
+    $("#modelo").val("");
+    $("#potencia").val("");
+}
+
+
+function insertarCoche(){
+    coche = new Coche(  null, 
+                        $("#marca").val(),
+                        $("#modelo").val(),
+                        $("#potencia").val());
+    /*
+    let coche = {
+        'marca'    : $("#marca").val(),
+        'modelo'   : $("#modelo").val(),
+        'potencia' : $("#potencia").val()
+    };*/
+    var json = JSON.stringify(coche);
+
+    $.ajax( { 'type'        : 'post', 
+              'url'         : 'coches',
+              'success'     : enviarPeticionListarCoches ,
+              'error'       : error,
+              'contentType' : 'application/json; charset=utf-8',
+              'data'        : json               
+            } );            
+
+}
+
+function modificarCoche(){
+   coche = new Coche(  idCocheSel, 
+                        $("#marca").val(),
+                        $("#modelo").val(),
+                        $("#potencia").val());
+   
+    var json = JSON.stringify(coche);
+
+    $.ajax( { 'type'        : 'put', 
+              'url'         : 'coches',
+              'success'     : enviarPeticionListarCoches ,
+              'error'       : error,
+              'contentType' : 'application/json; charset=utf-8',
+              'data'        : json               
+            } );     
+}
+
+function borrarCoche(){
+     $.ajax( {'type'    : 'delete', 
+              'url'     : 'coches/'+idCocheSel,
+              'success' : enviarPeticionListarCoches,
+              'error'   : error } );
+}
+
+
+
+$(function(){
+    $("#btnInsertar").click(insertarCoche);
+    $("#btnModificar").click(modificarCoche);
+    $("#btnBorrar").click(borrarCoche);
+    $("#btnVaciar").click(vaciarFormularioCoche);
+    enviarPeticionListarCoches();
+})
+
+</script>
+
+<body>
+
+   <div class="page-header">
+        <h1>Pedazo de aplicación sobre coches</h1> 
+    </div>
+
+    <!--<div class="navbar navbar-default">-->
+    <div class="navbar navbar-inverse">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="#">Coches</a>
+            </div>
+            <ul class="nav navbar-nav">
+                <li><a href="#">Inicio</a></li>
+                <li class="active"><a href="#">Coches</a></li>
+                <li><a href="#">Marcas</a></li>
+                <li><a href="#">Modelos</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xs-1"></div>  
+        <div class="text-center col-xs-10">  
+            <input type="button" id="btnInsertar"  class="btn btn-primary" value="Insertar"/>
+            <input type="button" id="btnModificar" class="btn btn-primary" value="Modificar" disabled/>
+            <input type="button" id="btnBorrar"    class="btn btn-primary" value="Borrar" disabled/>
+            <input type="button" id="btnVaciar"    class="btn btn-primary" value="Vaciar" disabled/>
+        </div>
+        <div class="col-xs-1"></div>  
+    </div>
+
+    <br/>
+
+    <div class="row">
+        <div class="col-xs-1"></div>
+        <div class="col-xs-10 form-horizontal">
+            <div class="form-group">
+                <label class="control-label col-xs-2" for="marca">Marca</label>
+                <div class="col-xs-8">
+                    <input type="text" id="marca" class="form-control" />
+                </div>
+            </div>  
+            <div class="form-group">
+                <label class="control-label col-xs-2" for="director">Modelo</label>
+                <div class="col-xs-8">
+                    <input type="text" id="modelo" class="form-control" />
+                </div>
+            </div>  
+            <div class="form-group">
+                <label class="control-label col-xs-2" for="potencia">Potencia</label>
+                <div class="col-xs-8">
+                    <input type="text" id="potencia" class="form-control"/>
+                </div>
+            </div>  
+        <div class="col-xs-1"></div>        
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-1"></div>  
+        <div class="col-xs-10">  
+            <table class="table table-hover table-striped">
+                <thead>
+                    <th>Marca</th>
+                    <th>Modelo</th>
+                    <th>Potencia</th>
+                </thead>
+                <tbody id="tablaCoches"></tbody>
+            </table>
+        </div>
+        <div class="col-xs-1"></div>  
+    </div>
+
+    <div>
+        <h5>Tenemos nuestras dudas, pero esperamos que sea el pie</h5> 
+    </div>
+
+ 
+</body>
+
+</html>

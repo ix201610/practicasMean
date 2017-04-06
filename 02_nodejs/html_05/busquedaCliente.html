@@ -1,0 +1,50 @@
+<html>
+    <head>AJAX</head>
+    <script type="text/javascript">
+    
+    let xmlHttp = new XMLHttpRequest();
+
+
+    function enviarPeticionAsincrona(){
+        let nombre = document.getElementById("nombre").value;
+        let url = "buscarCliente?nombre="+nombre;
+        xmlHttp.open("GET", url, true);
+        xmlHttp.onreadystatechange = function(){
+            if(this.readyState == 4){
+                if(this.status == 200){
+                    let respuesta = this.responseText;
+                    mostrarResultado(respuesta);
+                }else{
+                    mostrarResultado("<h1><font color=red>ERROR</h1>");
+                }
+                
+            }
+           
+        };
+     xmlHttp.send(null);
+
+
+    }
+    function mostrarResultado(respuesta){
+            document.getElementById("resultado").innerHTML = respuesta;
+        }
+
+    window.onload = function(){
+         document.getElementById("btnBuscarA").onclick = function(){
+            enviarPeticionAsincrona();
+        }
+
+    }
+
+    </script>
+
+    <body>
+        <h2 align="center">AJAX. Petición asíncrona.</h2>
+        <p align="center">
+            Nombre
+            <input type="text" id="nombre"/>
+            <input type="button" id="btnBuscarA" value="Buscar"/>
+        </p>
+        <p align="center" id="resultado"></p>
+    </body>
+</html>

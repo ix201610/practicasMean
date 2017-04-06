@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">    
+    <title>Insert title here</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    <!-- Latest compiled and minified JavaScript -->
+</head>
+
+<script type="text/javascript" src="jquery.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+<script type="text/javascript">
+
+function enviarPeticionAutocompletar(campo){
+
+    if( $("#"+campo)[0].value.trim().length < 1 ){
+        return;
+    }
+
+    let parametros = "campo="+campo+"&valor="+$("#"+campo).val().trim();
+    $.ajax( { 'url'     : 'servicios/autocompletar?'+parametros,
+              'success' : rellenarSugerencias,
+              'error'   : function(){ alert('ZASCA!') } } );
+}
+
+function rellenarSugerencias(respuesta){    
+
+    let trozos = respuesta.split("|");    
+    let campo = trozos[0];
+
+    let div = $("#sugerencias_"+campo)[0]; //Esto devuelve un nodo DOM estandard
+    div = $(div);
+    div.html(""); 
+
+    sugSel = 0;
+    numSug = trozos.length-1;
+
+    for(let a=1; a<trozos.length; a++){
+        let id = campo+"_"+a;
+
+        /*Podríamos hacerlo así
+        let html = "<div id='"+id+"' onclick='XXX' onmouseover='YYY' onmouseout='ZZZ'>"+
+                        trozos[a]+
+                    "</div>";
+        $(html).appendTo(div);
+        */
+
+        /*Pero lo vamos a hacer asá:
+        let sugerencia = $("<div id='"+id+"'>"+trozos[a]+"</div>")[0];
+        sugerencia.onclick = function(){ 
+            let texto = $(this).text();
+            $("#"+campo).val(texto);
+        }
+        sugerencia = $(sugerencia);
+        sugerencia.mouseover(function (){
+            //this.style = "background-color:lightGreen"; (esto funciona)
+            $(this).css("background-color","lightGreen");
+        });
+        sugerencia.mouseout(function (){
+            $(this).css("background-color","white");
+        });
+        */
+
+        //Al más puro estilo jQuery:
+        let sugerencia = $("<div id='"+id+"'>"+trozos[a]+"</div>");
+        sugerencia.click(function(){ 
+            let texto = $(this).text();
+            $("#"+campo).val(texto);
+            $("#sugerencias_"+campo).html("");
+        });
+
+        sugerencia.mouseover(function (){
+            $("#"+campo+"_"+sugSel).css("background-color","white");
+            sugSel = a;
+            $(this).css("background-color","lightGreen");
+        });
+
+        sugerencia.mouseout(function (){
+            $(this).css("background-color","white");
+        });
+
+        sugerencia.appendTo(div);
+    }
+}
+
+let idTimer = null;
+function programarTemporizadorPeticion(campo){
+    if(idTimer != null){
+        clearTimeout(idTimer);
+    }
+
+    idTimer = setTimeout( function(){
+                    enviarPeticionAutocompletar(campo);
+                }, 500); //Milisegundos
+}
+
+//Sugerencia que está seleccionada ahora mismo con el teclado
+let sugSel; 
+//Número de sugerencias que se muestran ahora mismo
+let numSug;
+
+function leerTeclado(campo, evento){
+
+    console.log(evento.keyCode);
+    let keyCode = evento.keyCode;
+
+    switch (keyCode){
+        case 38 : //Parriba
+                  $("#"+campo+"_"+sugSel).css("background-color","white");
+                  if(sugSel>1){
+                       sugSel--;
+                  }
+                  $("#"+campo+"_"+sugSel).css("background-color","yellow");
+                  break;
+        case 40 : //Pabajo
+                  $("#"+campo+"_"+sugSel).css("background-color","white");
+                  if(sugSel<numSug){
+                       sugSel++;
+                  }
+                  $("#"+campo+"_"+sugSel).css("background-color","yellow");
+                  break;
+        case 13 : //Pa dentro
+                  let nodo = $("#"+campo+"_"+sugSel)[0];
+                  nodo.click();
+                  break;
+        
+        default : programarTemporizadorPeticion(campo);
+    }
+    
+}
+
+$(function(){
+    $("#ciudad").keyup(function(evento){
+        leerTeclado('ciudad', evento);
+    });
+
+    //$("#cliente").keyup(function(){
+    //    leerTeclado('cliente');
+    //});
+
+})
+
+function teclita(evento){
+    console.log(evento.keyCode);
+}
+
+</script>
+
+<body>
+
+    <div class="page-header">
+        <h1>Ajax. Google suggest</h1> 
+    </div>
+
+    <div class="row">
+        <div class="col-xs-1"></div>  
+        <div class="text-center col-xs-10">  
+
+            Ciudad
+            <input type="text" id="ciudad"/>
+            <div id="sugerencias_ciudad">
+
+        </div>
+        <div class="col-xs-1"></div>  
+    </div>
+
+</body>
+
+</hmtl>
+
