@@ -1,0 +1,22 @@
+08_Mongoose
+
+EN 03_ejemplo_crud.js
+
+function getLibros(limit, funcionCallBack) {
+    Libro.find().limit(limit).exec(function(err,array){
+        array.reverse();
+        funcionCallBack(err, array);
+    }); 
+};
+
+EN 03_ejemplo_logica.js
+
+libros = apiLibro.getLibros(2, function(err, array){
+    if(err){
+        return;
+    }
+    for(let clave in array){
+            console.log("Clave libro: "+clave+", valor:"+array[clave]);
+        }
+});
+
